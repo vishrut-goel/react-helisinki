@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
 import Filter from './Filter'
 import Form from './Form'
+import personsService from './services/persons'
 import Persons from './Persons'
 import Notification from './Notification'
-import axios from 'axios'
 import ErrorMessage from './errorMessage'
 
 const App = () => {
@@ -15,9 +15,8 @@ const App = () => {
   const [errorMessage, setErrorMessage] = useState('')
 
   useEffect(() => {
-    console.log('effect')
-    axios
-      .get('http://localhost:3001/persons')
+    personsService
+      .getAll()
       .then(response => {
         console.log('promise fulfilled')
         setPersons(response.data)
@@ -27,13 +26,13 @@ const App = () => {
 
   const handleSubmit = (newPerson) => {
 
-    if (persons.findIndex((p) => p.name == newPerson.name) != -1) {
+    if (persons.findIndex((p) => p.name === newPerson.name) != -1) {
       alert(`${newPerson.name} is already in the phonebook, replace old number with a new one`);
 
       const personId = (persons.find(p => p.name === newPerson.name).id)
       const updatedPerson = { name: newPerson.name, number: newPerson.number }
-      axios
-        .put(`http://localhost:3001/persons/${personId}`, updatedPerson)
+      personsService
+        .update(personId, updatedPerson)
         .then(response => {
           // Update the persons state by making a copy of the existing state
           const updatedPersons = persons.map(person => {
@@ -47,7 +46,7 @@ const App = () => {
           setFilteredList(updatedPersons)
         })
         .then(() => {
-          setNotification(`Added ${updatedPerson.name}`)
+          setNotification(`Updated ${updatedPerson.name}`)
           setTimeout(() => {
             setNotification('')
           }, 5000)
@@ -62,14 +61,15 @@ const App = () => {
       setNewPerson({ name: '', number: '' })
       return;
     }
+
     const nameObj = {
       name: newPerson.name,
       number: newPerson.number,
       id: persons.length + 1
     }
 
-    axios
-      .post('http://localhost:3001/persons', nameObj)
+    personsService
+      .create(nameObj)
       .then(response => {
         console.log(response)
         setPersons(persons.concat(response.data))
@@ -95,8 +95,8 @@ const App = () => {
 
   const handleDeleteClick = (name, id) => {
     if (window.confirm(`Delete ${name}?`)) {
-      console.log('deleted')
-      axios.delete(`http://localhost:3001/persons/${id}`)
+      personsService
+        .remove(id)
       setPersons(
         persons.filter((person) => {
           return person.id !== id;
@@ -105,13 +105,14 @@ const App = () => {
         filteredList.filter((person) => {
           return person.id !== id;
         }))
+      console.log('deleted')
     }
   }
 
   return (
     <div>
       <Notification message={notification} />
-      <ErrorMessage message = {errorMessage}/>
+      <ErrorMessage message={errorMessage} />
       <h2>Phonebook</h2>
       <Filter onSearch={filterBySearch} />
       <h2>Add New</h2>

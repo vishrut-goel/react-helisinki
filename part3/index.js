@@ -1,11 +1,15 @@
 const express = require('express')
 const app = express()
 const morgan = require('morgan')
+const cors = require('cors')
 
+app.use(cors())
+app.use(express.static('build'))
 app.use(express.json())
 app.use(morgan('tiny'))
 
-const PORT = 3001
+
+const PORT = process.env.PORT || 3001
 
 persons = [
     {
@@ -62,7 +66,7 @@ app.get('/api/info', (req, res) => {
     res.send(info)
 })
 
-app.get('/api/persons/:id', (req, res) => {
+app.put('/api/persons/:id', (req, res) => {
     const id = Number(req.params.id)
     const person = persons.find(person => id === person.id)
     if (person) {
