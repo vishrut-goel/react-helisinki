@@ -82,6 +82,13 @@ const App = () => {
           setNotification('')
         }, 5000)
       })
+      .catch(error => {
+        console.log(error.response)
+        setErrorMessage(`${error.response.data}`)
+        setTimeout(() => {
+          setErrorMessage('')
+        }, 5000)
+      })
   }
 
   const handleChange = (name, value) => {
